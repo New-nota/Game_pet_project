@@ -1,3 +1,4 @@
+
 inventory = {
     1: ['фонарик'],
     2: ['фонарик', 'компас'],
@@ -119,7 +120,12 @@ def miroh_word_act1(inventory:list)-> bool: # расписан шаг 1
             inventory.remove('амулет')
             return False
     return False
-                        
+def miroh_word_act2(inventory:list) -> bool: # второй шаг
+    road = {'1': 0, '2': 0, '3': 0}
+    steps = 0
+    while steps < 5:
+        pass
+         
 
 def miroh_word(inventory:list):
     tries = 1
@@ -180,3 +186,7 @@ def main():
         result = star_word(game['inventory'])
 
 main()
+
+
+
+
