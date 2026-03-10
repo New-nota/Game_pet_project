@@ -4,12 +4,6 @@ inventory = {
     3: ['фонарик', 'компас', 'амулет'], 
 }
 
-worlds = {
-    1: "Clé 1: MIROH",
-    2: "NOEASY",
-    3: "5‑STAR"
-}
-
 game = {
     "errors": 0,
     "rudeness_count": 0,
@@ -17,12 +11,23 @@ game = {
     "input_resets": 0,
     'difficulty': 0,
     'unnecessary_use_amulet_count': 0,
+    'used_amulet': 0,
     "inventory":[],
     "achievements":[],
     "symbols":{}
 }
 
-
+def reset_game() -> None:
+    game["errors"] = 0
+    game["rudeness_count"] = 0
+    game["kindness_count"] = 0
+    game["input_resets"] = 0
+    game["difficulty"] = 0
+    game["unnecessary_use_amulet_count"] = 0
+    game["used_amulet"] = 0
+    game["inventory"] = []
+    game["achievements"] = []
+    game["symbols"] = {}
 
 def get_input( # считает сколько раз игрок решил вводить не то что его попросили. используется вместо input.
         prompt: str,# вводим фразу которую выведет на экран
@@ -41,11 +46,10 @@ def get_input( # считает сколько раз игрок решил вв
                 get_achieve('Да ты издеваешься над нами!!')
             game['errors'] = 0
 
-
 def use_amulet(inventory: list[str]) -> bool:
     if 'амулет' in inventory:
-        choise = get_input('Использовать амулет чтобы переиграть событие - 1, продолжить - 2 ', ['1','2'])
-        if choise == '1':
+        choice = get_input('Использовать амулет чтобы переиграть событие - 1, продолжить - 2 ', ['1','2'])
+        if choice == '1':
             inventory.remove('амулет')
             get_achieve('Второе дыхание')
             return True
@@ -54,10 +58,9 @@ def use_amulet(inventory: list[str]) -> bool:
 def check_amulet(inventory:list[str]) -> None:
     if game['difficulty'] == 3 and 'амулет' not in inventory:
         inventory.append('амулет')
-    return None
 
 def show_inventory(inventory: list[str]) -> None:
-    print("Выберете предмет из инвентаря, чтобы использовать его \n"
+    print("Выберите предмет из инвентаря, чтобы использовать его \n"
     " кроме амулета, он может только откатить время назад")
     for i, item in enumerate(inventory, start=1):
         print(f"{i}. {item}")
@@ -77,7 +80,7 @@ def fight_with_robot() ->bool:
     expected = ['1','2','3']
     step = 0
     while damage < 3 and step < 3:
-        action = get_input("Выберете действие 1-3",['1','2','3'])
+        action = get_input("Выберите действие 1-3",['1','2','3'])
         if action == expected[step]:
             step += 1
         else:
@@ -89,7 +92,7 @@ def fight_with_robot() ->bool:
         return True
     
 def sprint()->bool: 
-    # иммитирует попытку пробежать незамеченным, 
+    # имитирует попытку пробежать незамеченным, 
     # правильный порядок 1 2
     print("Пробегите и не попадите под лучи сканера. \n" \
     " Пригнитесь и перекатитесь, чтобы пройти испытание. \n " \
@@ -107,14 +110,15 @@ def miroh_world_act1(inventory:list)-> bool: # расписан шаг 1
     "2. Быстро пробежать вперёд.\n" \
     "3.Использовать предмет из инвентаря. ")
     move = get_input("Введите число от 1 до 3",['1','2','3'])
-    if int(move) == 1:
+    if move == '1':
         print("Вы тихо сидите, робот проходит мимо.\n Вы теряете время, но остаётесь незамеченным")
         return True
-    elif int(move) == 2:
+    elif move == '2':
         if sprint():
             print("Вы проскочили и идете дальше")
             return True
         if use_amulet(inventory):
+            game['used_amulet'] += 1
             if sprint():
                 print("Вы проскочили и идете дальше")
                 return True
@@ -124,13 +128,14 @@ def miroh_world_act1(inventory:list)-> bool: # расписан шаг 1
             game['rudeness_count'] += 1
             return True
         if use_amulet(inventory):
+            game['used_amulet'] += 1
             if fight_with_robot():
                 print("робот уничтожен, но шум привлекает других;" \
                 "\n вы теряете время, но проходите дальше")
                 game['rudeness_count'] += 1
                 return True
         return False
-    elif int(move) == 3:
+    elif move == '3':
         show_inventory(inventory)
         item = get_input("Введите номер предмета ",[str(i) for i in range(1,len(inventory) + 1)])
         selected_item = inventory[int(item) - 1]
@@ -141,15 +146,13 @@ def miroh_world_act1(inventory:list)-> bool: # расписан шаг 1
             print('Вы замираете неподвижно, робот уходит.\n  По компасу вы находите другой маршрут')
             return True
         elif selected_item == 'амулет':
-            print('Поздравляю, вы возвращаетесь в начало! а ведь это могло спасти вам жизнь..')
+            print('Поздравляю, вы теряете амулет! а ведь это могло спасти вам жизнь..')
             inventory.remove('амулет')
             game['unnecessary_use_amulet_count'] += 1
             return False
     return False
 
 def meeting() -> bool:
-    #тут я сделал не очень логично. 
-    #bool указывает - берем мы беженцев или нет
     print('Вы натыкаетесь на группу испуганных людей,\n'
           'которые тоже пытаются выбраться. Им нужна помощь.')
     choice = get_input('1. Пройти мимо, не обращая внимания\n '
@@ -170,11 +173,11 @@ def meeting() -> bool:
         return False
 
 def check_match(user_way:str, right_way:str) -> bool:
-    matche = 0
+    mathes = 0
     for i in range(len(right_way)):
         if user_way[i] == right_way[i]:
-            matche += 1
-    if matche >= len(right_way) * 0.8:
+            mathes += 1
+    if mathes >= len(right_way) * 0.8:
         return True
     return False
 
@@ -215,6 +218,7 @@ def miroh_world(inventory:list)-> bool:
     act1_end = miroh_world_act1(inventory)
     if not act1_end:
         if use_amulet(inventory):
+            game['used_amulet'] += 1
             act1_att2_end = miroh_world_act1(inventory)
             if not act1_att2_end:
                 return False
@@ -225,6 +229,7 @@ def miroh_world(inventory:list)-> bool:
     act2_end = miroh_world_act2(inventory)
     if not act2_end:
         if use_amulet(inventory):
+            game['used_amulet'] += 1
             act2_att2_end = miroh_world_act2(inventory)
             if not act2_att2_end:
                 return False
@@ -260,7 +265,7 @@ def use_tool(inventory:list[str], step:int) -> None:
         print(f'Дух ждет ответ{strong_answers[step - 1]}')
         return None
     elif selected_item == 'амулет':
-        print('Поздравляю, вы возвращаетесь в начало! а ведь это могло спасти вам жизнь..')
+        print('Поздравляю, вы теряете амулет! а ведь это могло спасти вам жизнь..')
         inventory.remove('амулет')
         game['unnecessary_use_amulet_count'] += 1
         return None
@@ -331,7 +336,7 @@ def quiz(inventory:list[str])-> bool:
         return True
     else:
         if stats['kindness'] == 3:
-            get_achieve('Absolute Karma, but no sence')
+            get_achieve('Absolute Karma, but no sense')
         return False
 
 def noeasy_world(inventory:list)-> bool:
@@ -343,18 +348,128 @@ def noeasy_world(inventory:list)-> bool:
         print('Дух усмехается: «Слабак». Он исчезает, оставляя вас в пустоте.\n '
               ' Символ не получен.')
         if use_amulet(inventory):
+            game['used_amulet'] += 1
             if not quiz(inventory):
                 return False
         else:
             return False
     return True
 
+def star_world_performance(inventory:list[str])-> int:
+    print('Вы подходите к сцене. \n \n'
+          '-Бан Чан: \n '
+          '“Теперь покажи нам своё выступление.” \n' \
+          'Варианты: \n' \
+          '1 - импровизировать \n' \
+          '2 - повторить чужой стиль \n' \
+          '3 - ЙОБНУТЬ САЛЬТУХУ \n' \
+          '4 - использовать предмет')
+    ans = get_input('Введите номер выбранного вами варианта',['1','2','3','4'])
+    if ans == '4':
+        show_inventory(inventory)
+        options = [str(i) for i in range(1,len(inventory) + 1)]
+        item = get_input("Введите номер предмета ", options)
+        selected_item = inventory[int(item) - 1]
+        if selected_item == 'фонарик':
+            print('Фонарик подсвечивает что не стоит повторять чужой стиль')
+        elif selected_item == 'компас':
+            print('Компас указывает что лучше выбрать между импровизацией и сальто')
+        elif selected_item == 'амулет':
+            print('Поздравляю, вы теряете амулет! а ведь это могло спасти вам жизнь..')
+            inventory.remove('амулет')
+            game['unnecessary_use_amulet_count'] += 1
+        print('Варианты: \n' \
+          '1 - импровизировать \n' \
+          '2 - повторить чужой стиль \n' \
+          '3 - ЙОБНУТЬ САЛЬТУХУ')
+        ans = get_input('Введите номер выбранного вами варианта',['1','2','3'])
+    if ans == '1':
+        print('Выступление прошло энергично, зрители поддерживают.')
+        return 1
+    elif ans == '2':
+        print('Копия выглядит бледно, публика чувствует фальшь.')
+        return 2
+    elif ans == '3':
+        print('Вот это и есть стиль 5 STAR!')
+        return 3
 
+def star_world_gameplay(inventory:list[str])->bool:
+    stars_collected = 0
+    performance = {}
+    variation = {
+        '1': 'Рэп',
+        '2': 'Танец',
+        '3': 'Вокал',
+        '4': 'Эксперементальный стиль'
+    }
+    print('На сцене появляются четыре двери. Каждая ведёт к одной из версий тебя. \n'
+          'Выбери, что больше тебе по душе.\n'
+          '1 — Рэп\n '
+          '2 — Танец \n '
+          '3 — Вокал \n '
+          '4 — Экспериментальный стиль')
+    ans = get_input('Введите номер выбранного стиля',['1','2','3','4'])
+    traits = variation[ans]
+    print('Участники зафиксировали твой выбор \n' 
+          'Ты выступаешь в стиле', traits)
+    performance_result = star_world_performance(inventory)
+    if performance_result == 1:
+        performance[traits] = "успех"
+        stars_collected += 1
+    elif performance_result == 2:
+        performance[traits] = "слабо"
+        game['rudeness_count'] += 1
+     
+    elif performance_result == 3:
+        performance[traits] = "УНИКАЛЬНО"
+        stars_collected += 2
+        get_achieve("АШАЛЕТЬ ЧТО ТЫ ТВОРИШЬ!!")
+    print('На сцене появляется огромная надпись: «Докажи, что ты — 5-STAR.» \n ' \
+    'Выберите действие: \n' \
+    '1 — Громко, напористо заявить о себе \n' \
+    '2 — Сомневаться \n' \
+    '3 — Тепло обратиться к залу')
+    users_style = get_input("Введите номер действия: ",['1','2','3'])
+    if users_style == '1':
+        print('Зал реагирует, но чувствуется излишняя агрессия.')
+        stars_collected += 1
+    
+        game['rudeness_count'] += 1
+    elif users_style == '2':
+        print('Неуверенность снижает поддержку зала.')
 
-def star_world(inventory:list):
+        print('Из тишины зала издается..')
+        get_achieve('HA-HA')
+    elif users_style == '3':
+        print('Зрители отвечают теплом, поддержка растёт.')
+        stars_collected += 2
+        game['kindness_count'] += 1
+    if stars_collected >= 3:
+        return True
+    else:
+        print('Вам не хватило уверенности. Символ не получен.')
+        return False
+
+def star_world(inventory:list[str])-> bool:
     check_amulet(inventory)
-    pass
-
+    print('Вы входите в мир — 5-STAR. Это огромная сцена, похожая на город \n '
+          'из света и неона. Здесь всё странное, яркое и громкое.\n'
+          ' Огромные экраны показывают разные версии вас: тихую, уверенную, странную, смелую.\n '
+          ' На центральной сцене появляются участники Stray kids.\n'
+          'Теперь осталось самое сложное. Показать миру себя настоящего.\n '
+          'Не исправлять странности… а сделать их своей силой. Чтобы проснуться,\n '
+          'нужно получить все символы — но сцена проверит кто ты на самом деле.\n')
+    result = star_world_gameplay(inventory)
+    if not result:
+        if use_amulet(inventory):
+            game['used_amulet'] += 1
+            result = star_world_gameplay(inventory)
+            if not result:
+                return False
+        else:
+            return False
+    return True
+       
 def main():
     print('Добро пожаловать в игру «Stray Kids: Сновидец SKZ-Verse»!\n'
           ' Выберите уровень сложности: \n '
@@ -391,13 +506,45 @@ def main():
                 game['symbols']['NOEASY'] = True
                 print('Дух исчезает. Вы не поддались на провокации и сохранили внутреннюю уверенность.\n'
                       'Вы получаете символ NOEASY.')
-
         elif world_id == 3:
             result = star_world(game['inventory'])
+            if result:
+                game['symbols']['5-STAR'] = True
+                print('Вы получаете символ 5-STAR. Вы показали себя настоящего.')
         n += 1
+    if len(game['symbols']) == 3:
+        get_achieve('GOLDEN STAY')
+        print('Вы полностью пробуждаетесь, успеваете на концерт и видите группу вживую.')
+    elif len(game['symbols']) == 2:
+        get_achieve('GOOD FAN')
+        print('Вы просыпаетесь, но опаздываете на концерт. \n '
+              'Первые песни вы слушаете прямо у входа, но всё равно счастливы.')
+    elif len(game['symbols']) == 1:
+        get_achieve('THE DREAMER')
+        print('Вы просыпаетесь, но концерт уже закончился. \n '
+              'Однако вы приносите домой памятный сувенир из сна.')
+    elif len(game['symbols']) == 0 and game['rudeness_count'] >= 4:
+        get_achieve('U TOXIC BTW')
+        print('Попробуй еще раз... хотя знаешь, мне кажется у тебя все равно ничего не получится...')
+    elif len(game['symbols']) == 0:
+        get_achieve('CAPTIVE STAY')
+        print('Вы не смогли проснуться и остались в мире снов навсегда :(')
+    if game['kindness_count'] >= 4:
+        get_achieve('THE KEEPER OF DREAMS')
+        print('Вы становитесь защитником SKZ-Verse и можете возвращаться туда, когда захотите.')
+    if game['used_amulet'] >= 2:
+        get_achieve('С первого раза!(почти)')
+        print('Вы скрытый 9 мембер Stray Kids, но лучше проходить все с первого раза.')
+    if len(game['symbols']) == 3 and game['unnecessary_use_amulet_count'] == 3:
+        get_achieve('придумать название')
+        print('придумать надпись')
 
-main()
-
+while True:
+    reset_game()
+    main()
+    again = input("Сыграть ещё раз? (y/n): ").strip().lower()
+    if again != "y":
+        break
 
 
 
