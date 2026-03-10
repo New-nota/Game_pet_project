@@ -312,7 +312,7 @@ def use_tool(inventory: list[str], step: int) -> None:
             "Компас указывает верное направление. \n"
             "Вы точно знаете, какой ответ правильный "
         )
-        print(f"Дух ждет ответ{strong_answers[step - 1]}")
+        print(f"Дух ждет ответ {strong_answers[step - 1]}")
         return None
     elif selected_item == "амулет":
         print("Поздравляю, вы теряете амулет! а ведь это могло спасти вам жизнь..")
