@@ -1,30 +1,35 @@
-
 inventory = {
     1: ['фонарик'],
     2: ['фонарик', 'компас'],
     3: ['фонарик', 'компас', 'амулет'], 
 }
+
 worlds = {
     1: "Clé 1: MIROH",
     2: "NOEASY",
     3: "5‑STAR"
 }
+
 game = {
     "errors": 0,
     "rudeness_count": 0,
-    "kindness":0,
+    "kindness_count":0,
     "input_resets": 0,
+    'difficulty': 0,
+    'unnecessary_use_amulet_count': 0,
     "inventory":[],
     "achievements":[],
     "symbols":{}
 }
+
+
 
 def get_input( # считает сколько раз игрок решил вводить не то что его попросили. используется вместо input.
         prompt: str,# вводим фразу которую выведет на экран
         options:list[str] #  варианты ответов
         ): 
     while True:
-        ans = input(prompt)
+        ans = input(prompt).strip()
         if ans in options:
             return ans
         game['errors'] += 1
@@ -42,10 +47,14 @@ def use_amulet(inventory: list[str]) -> bool:
         choise = get_input('Использовать амулет чтобы переиграть событие - 1, продолжить - 2 ', ['1','2'])
         if choise == '1':
             inventory.remove('амулет')
-            get_achive('Второе дыхание')
+            get_achieve('Второе дыхание')
             return True
     return False
 
+def check_amulet(inventory:list[str]) -> None:
+    if game['difficulty'] == 3 and 'амулет' not in inventory:
+        inventory.append('амулет')
+    return None
 
 def show_inventory(inventory: list[str]) -> None:
     print("Выберете предмет из инвентаря, чтобы использовать его \n"
@@ -134,6 +143,7 @@ def miroh_world_act1(inventory:list)-> bool: # расписан шаг 1
         elif selected_item == 'амулет':
             print('Поздравляю, вы возвращаетесь в начало! а ведь это могло спасти вам жизнь..')
             inventory.remove('амулет')
+            game['unnecessary_use_amulet_count'] += 1
             return False
     return False
 
@@ -149,7 +159,7 @@ def meeting() -> bool:
         return False
     elif choice == '2':
         print('Вы тратите время, но помогаете людям.')
-        game['kindness'] += 1
+        game['kindness_count'] += 1
         get_achieve('do u know da way?')
         return True
     elif choice == '3':
@@ -193,9 +203,8 @@ def miroh_world_act2(inventory:list) -> bool:
         return True
     return False
          
-
-def miroh_world(inventory:list):
-    tries = 1
+def miroh_world(inventory:list)-> bool:
+    check_amulet(inventory)
     print("Вы вступили в мир «Clé 1: MIROH» – Лабиринт улиц.\n"
           " Шумный мегаполис, но  вместо людей улицы патрулируют роботы-надзиратели.\n"
           " Вы чувствуете себя  беглецом, пытающимся пробраться через лабиринт переулков,\n"
@@ -205,8 +214,7 @@ def miroh_world(inventory:list):
           " Ваша цель – добраться до выхода из этого района, избегая встреч с роботами.")
     act1_end = miroh_world_act1(inventory)
     if not act1_end:
-        tries -=1
-        if tries > 0:
+        if use_amulet(inventory):
             act1_att2_end = miroh_world_act1(inventory)
             if not act1_att2_end:
                 return False
@@ -216,27 +224,136 @@ def miroh_world(inventory:list):
 
     act2_end = miroh_world_act2(inventory)
     if not act2_end:
-        tries -=1
         if use_amulet(inventory):
-            tries += 1
-        if tries > 0:
             act2_att2_end = miroh_world_act2(inventory)
             if not act2_att2_end:
                 return False
         else:
             return False
     return True
-    
 
-def noeasy_world(inventory:list):
-    tries = 1
-    pass
+def use_tool(inventory:list[str], step:int) -> None:
+    strong_answers = [
+         '2','3','1'
+     ]
+    rude_answers = [
+         '1','2','3'
+    ]
+    use = get_input("Хотите использовать предмет? \n 1 - да \n 2 - нет", ['1','2'])
+    if use == '2':
+        return None
+    show_inventory(inventory)
+    print('0 - Ничего (вернутся к ответам)')
+    options = [str(i) for i in range(1,len(inventory) + 1)] + ['0']
+    item = get_input("Введите номер ", options)
+    if item == '0':
+        return None
+    selected_item = inventory[int(item) - 1]
+    if selected_item == 'фонарик':
+        print('Фонарик подсвечивает истинные помыслы духа. \n'
+                'Осторожно, он может разозлиться от ваших ответов.')
+        print(f"Дух разозлится от ответа {rude_answers[step - 1]}")
+        return None
+    elif selected_item == 'компас':
+        print('Компас указывает верное направление. \n'
+                'Вы точно знаете, какой ответ правильный')
+        print(f'Дух ждет ответ{strong_answers[step - 1]}')
+        return None
+    elif selected_item == 'амулет':
+        print('Поздравляю, вы возвращаетесь в начало! а ведь это могло спасти вам жизнь..')
+        inventory.remove('амулет')
+        game['unnecessary_use_amulet_count'] += 1
+        return None
+    
+def quiz(inventory:list[str])-> bool:
+    question_pool = [
+        {
+        'question':
+        'Дух усмехается: «Говорят, что k-pop — это просто коммерция,\n '
+        'и фанаты зря тратят деньги. Что скажешь?»',
+        'answers':{ 
+        '1' : 'Да кому какое дело? Я сам решаю, на что тратить! \n ',
+        '2' : 'Мне нравится музыка и выступления, это делает меня счастливым, а остальное неважно.\n',
+        '3' : 'Каждый ищет что-то своё. Если кому-то это не близко, их право.'},
+        'scores' : {
+            '1':{'rudeness':1},
+            '2':{'strong':1},
+            '3':{'kindness':1}
+            }
+        },
+        {
+        'question':
+        'Дух продолжает: «Представь, что ты прорвался за кулисы и встретил кого-то из Stray Kids.\n'
+        ' Что ты сделаешь?»',
+        'answers':{ 
+        '1' : 'Спрошу, как они сами себя чувствуют, насколько им сложно. \n ',
+        '2' : 'Сразу попрошу селфи и автограф, это же шанс!\n',
+        '3' : 'Скажу спасибо за творчество и пожелаю удачи.'},
+        'scores' : {
+            '1':{'kindness':1},
+            '2':{'rudeness':1},
+            '3':{'strong':1}
+            }
+        },
+        {
+        'question':
+        'Дух резко кивает в сторону толпы: «Смотри, там какая-то девушка упала в обморок. \n'
+        'Люди начинают толпиться вокруг, никто не знает, что делать. Ты рядом. \n '
+        'Ты что то предпримешь?»',
+        'answers':{ 
+        '1' : 'Громко позову охрану и попрошу вызвать скорую, оставаясь на месте и успокаивая окружающих. \n ',
+        '2' : 'Попытаюсь самостоятельно привести девушку в чувство, дав воды и спросив, что случилось.\n',
+        '3' : 'Грубо растолкаю зевак и крикну: «Расступитесь, дайте воздух!»'},
+        'scores' : {
+            '1':{'strong':1},
+            '2':{'kindness':1},
+            '3':{'rudeness':1}
+            }
+        }
+    ]
+    stats = {
+        "strong": 0,
+        "kindness":0,
+        "rudeness":0
+    }
+    for i, data  in enumerate(question_pool,start=1):
+        print(data['question'])
+        for key, answer in data['answers'].items():
+            print(key, ' - ', answer)
+        use_tool(inventory, i)
+        user_answer = get_input('Введите номер ответа',['1','2','3'])
+        karma = data['scores'][user_answer]
+        for stat, value in karma.items():
+            stats[stat] += value
+    game['rudeness_count'] += stats['rudeness']
+    game['kindness_count'] += stats['kindness']
+    if stats['strong'] >= 2:
+        return True
+    else:
+        if stats['kindness'] == 3:
+            get_achieve('Absolute Karma, but no sence')
+        return False
+
+def noeasy_world(inventory:list)-> bool:
+    check_amulet(inventory)
+    print('Вы вступаете в мир «NOEASY» – мир шума. Перед вами огромная сцена, а вокруг толпа, которая освистывает вас.\n'
+          'Из темноты появляется Дух – злобное существо, которое начинает насмехаться. Ваш голос – ваше оружие. \n '
+          'Докажите, что вы достойны идти дальше!')
+    if not quiz(inventory):
+        print('Дух усмехается: «Слабак». Он исчезает, оставляя вас в пустоте.\n '
+              ' Символ не получен.')
+        if use_amulet(inventory):
+            if not quiz(inventory):
+                return False
+        else:
+            return False
+    return True
+
 
 
 def star_world(inventory:list):
-    tries = 1
+    check_amulet(inventory)
     pass
-
 
 def main():
     print('Добро пожаловать в игру «Stray Kids: Сновидец SKZ-Verse»!\n'
@@ -246,8 +363,10 @@ def main():
           ' 3 - "Новичок"\n ')
     difficulty = get_input("Введите уровень сложности: 1-3", ['1','2','3'])
     game['inventory'] = inventory[int(difficulty)].copy()
+    game['difficulty'] = int(difficulty)
     print("Благодаря выбранной сложности при себе вы имеете:")
     print(*game['inventory'], sep=', ')
+    unused_worlds_ids = [1,2,3]
     unused_worlds = [
         "1 — «Clé 1: MIROH» (Лабиринт улиц, где нужно найти выход из хаоса)",
         "2 — «NOEASY» (Мир шума, где ваш голос становится оружием)",
@@ -258,16 +377,22 @@ def main():
         for world_type in unused_worlds:
                 print(world_type)     
         world = get_input("Введите номер мира: ", [str(i) for i in range(1,len(unused_worlds) + 1)])
-        unused_worlds.pop(int(world) - 1)
-        worlds.pop(int(world))
-        if int(world) == 1:
+        idx = int(world) - 1
+        world_id = unused_worlds_ids.pop(idx)
+        unused_worlds.pop(idx)
+        if world_id == 1:
             result = miroh_world(game['inventory'])
             if result:
                 game['symbols']['MIROH'] = True
                 print('Вы выбрались из лабиринта! Вы получаете символ MIROH')
-        elif int(world) == 2:
+        elif world_id == 2:
             result = noeasy_world(game['inventory'])
-        elif int(world) == 3:
+            if result:
+                game['symbols']['NOEASY'] = True
+                print('Дух исчезает. Вы не поддались на провокации и сохранили внутреннюю уверенность.\n'
+                      'Вы получаете символ NOEASY.')
+
+        elif world_id == 3:
             result = star_world(game['inventory'])
         n += 1
 
