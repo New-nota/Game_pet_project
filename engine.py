@@ -56,10 +56,10 @@ def run_game() -> None:
     available_worlds = [
         (1, "«Clé 1: MIROH» (Лабиринт улиц, где нужно найти выход из хаоса)"),
         (2, "«NOEASY» (Мир шума, где ваш голос становится оружием)"),
-        (3, "«5‑STAR» (Звёздный мир, где решается ваша уникальность)"),
+        (3, "«5 STAR» (Звёздный мир, где решается ваша уникальность)"),
     ]
     selected_inventory = models.game.inventory
-    logger.wprint("Вы засыпаете и попадаете в SKZ‑Verse. Перед вами три мира:\n")
+    logger.wprint("Вы засыпаете и попадаете в SKZ Verse. Перед вами три мира:\n")
     while available_worlds:
         for idx, (_, world_type) in enumerate(available_worlds, start=1):
             logger.wprint(f"{idx}. {world_type}")

@@ -1,6 +1,16 @@
 import models 
+import sys
 
 LOG_FILE = "gameplay.txt"
+
+
+def _safe_console_text(text: str) -> str:
+    encoding = sys.stdout.encoding or "utf-8"
+    try:
+        text.encode(encoding)
+        return text
+    except UnicodeEncodeError:
+        return text.encode(encoding, errors="replace").decode(encoding)
 
 
 def reset_log() -> None:
@@ -16,7 +26,7 @@ def wprint(*to_file) -> None:
         else:
             output_parts.append(str(item))
     text = " ".join(output_parts)
-    print(text)
+    print(_safe_console_text(text))
     with open(LOG_FILE, "a", encoding="utf-8") as f:
         f.write(text + "\n")
 

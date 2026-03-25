@@ -180,11 +180,11 @@ def miroh_world(inventory: list[str]) -> bool:
         else:
             return False
 
-    act2_end = miroh_world_act2(inventory)
+    act2_end = miroh_world_act2()
     if not act2_end:
         if inventory_utils.use_amulet(inventory):
             models.game.used_amulet += 1
-            act2_att2_end = miroh_world_act2(inventory)
+            act2_att2_end = miroh_world_act2()
             if not act2_att2_end:
                 return False
         else:
