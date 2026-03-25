@@ -1,6 +1,4 @@
-import worlds.miroh
-import worlds.noeasy
-import worlds.star
+from worlds import miroh, noeasy, star
 import logger
 import models 
 from content_loader import load_json
@@ -70,12 +68,12 @@ def run_game() -> None:
         world_id, _ = available_worlds.pop(int(world) - 1)
 
         if world_id == 1:
-            result = worlds.miroh.miroh_world(selected_inventory)
+            result = miroh.miroh_world(selected_inventory)
             if result:
                 models.game.symbols.append("MIROH") 
                 logger.wprint("Вы выбрались из лабиринта! Вы получаете символ MIROH")
         elif world_id == 2:
-            result = worlds.noeasy.noeasy_world(selected_inventory)
+            result = noeasy.noeasy_world(selected_inventory)
             if result:
                 models.game.symbols.append("NOEASY")
                 logger.wprint(
@@ -83,7 +81,7 @@ def run_game() -> None:
                     "Вы получаете символ NOEASY."
                 )
         elif world_id == 3:
-            result = worlds.star.star_world(selected_inventory)
+            result = star.star_world(selected_inventory)
             if result:
                 models.game.symbols.append("5-STAR")
                 logger.wprint("Вы получаете символ 5-STAR. Вы показали себя настоящего.\n ")
