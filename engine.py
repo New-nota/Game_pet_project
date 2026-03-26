@@ -2,9 +2,10 @@ from worlds import miroh, noeasy, star
 import logger
 import models 
 from content_loader import load_json
- 
+data = load_json("content/engine.json")
+
 def determine_ending() -> tuple[str, str]:
-    texts = load_json("content/engine.json")["endings"]
+    texts = data["endings"]
     symbols_count = len(models.game.symbols)
     total_amulet_uses = (
         models.game.used_amulet + models.game.unnecessary_use_amulet_count
@@ -39,12 +40,12 @@ def determine_ending() -> tuple[str, str]:
 
 
 def run_game() -> None:
-    texts = load_json("content/engine.json")
+   
     models.reset_game_state()
     logger.reset_log()
 
     logger.wprint(
-        texts["choose_difficulty"]
+        data["choose_difficulty"]
     )
     difficulty = logger.get_input("Введите уровень сложности:", ["1", "2", "3"])
     models.game.inventory = models.defaults.choose_difficulty[int(difficulty)].copy()

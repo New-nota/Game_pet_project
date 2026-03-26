@@ -2,9 +2,10 @@ import logger
 import inventory as inventory_utils
 from content_loader import load_json
 import models 
+data = load_json("content/star.json")
 
 def preparation() -> None:
-    texts = load_json("content/star.json")["preparation"]
+    texts = data["preparation"]
     logger.wprint(
         texts["intro_preparation"]
     )
@@ -19,7 +20,7 @@ def preparation() -> None:
 
 def performance_round_1(inventory:list[str]) -> int:
     stars_collected = 0
-    texts = load_json("content/star.json")["performance_round_1"]
+    texts = data["performance_round_1"]
     logger.wprint(
         texts["performance_round_1_intro"]
     )
@@ -54,7 +55,7 @@ def performance_round_1(inventory:list[str]) -> int:
     return stars_collected
 
 def performance_round_2() -> int:
-    texts = load_json("content/star.json")["performance_round_2"]
+    texts = data["performance_round_2"]
     stars_collected = 0 
     logger.wprint(
         texts
@@ -89,7 +90,7 @@ def star_world_gameplay(inventory: list[str]) -> bool:
 
     
 def star_world(inventory: list[str]) -> bool:
-    texts = load_json("content/star.json")["star_intro"]
+    texts = data["star_intro"]
     inventory_utils.check_amulet(inventory)
     logger.wprint(
         texts

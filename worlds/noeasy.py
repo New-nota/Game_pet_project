@@ -2,10 +2,9 @@ import logger
 import inventory as inventory_utils
 import models 
 from content_loader import load_json
-
+data = load_json("content/noeasy.json")
 
 def use_clue(inventory: list[str], step: int) -> None:
-    texts = load_json("content/noeasy.json")
     strong_answers = ["2", "3", "1"]
     rude_answers = ["1", "2", "3"]
     use = logger.get_input("Хотите использовать предмет? \n 1 - да \n 2 - нет:", ["1", "2"])
@@ -18,36 +17,37 @@ def use_clue(inventory: list[str], step: int) -> None:
     if item == "0":
         return None
     selected_item = inventory[int(item) - 1]
+    texts = data["tools"]
     if selected_item == "фонарик":
         logger.wprint(
-            texts["tools"]["фонарик"]
+            texts["фонарик"]
         )
         logger.wprint(f"Дух разозлится от ответа {rude_answers[step - 1]}")
         return None
     elif selected_item == "компас":
         logger.wprint(
-            texts["tools"]["компас"]
+            texts["компас"]
         )
         logger.wprint(f"Дух ждет ответ {strong_answers[step - 1]}")
         return None
     elif selected_item == "амулет":
-        logger.wprint(texts["tools"]["амулет"])
+        logger.wprint(texts["амулет"])
         inventory.remove("амулет")
         models.game.unnecessary_use_amulet_count += 1
         return None
 
 
 def quiz(inventory: list[str]) -> bool:
-    texts = load_json("content/noeasy.json")
-    question_pool = texts["quiz"]
+    
+    question_pool = data["quiz"]
     stats = {"strong": 0, "kindness": 0, "rudeness": 0}
-    for i, data in enumerate(question_pool, start=1):
-        logger.wprint(data["question"])
-        for key, answer in data["answers"].items():
+    for i, info in enumerate(question_pool, start=1):
+        logger.wprint(info["question"])
+        for key, answer in info["answers"].items():
             logger.wprint(key, " - ", answer)
         use_clue(inventory, i)
         user_answer = logger.get_input("Введите номер ответа:", ["1", "2", "3"])
-        karma = data["scores"][user_answer]
+        karma = info["scores"][user_answer]
         for stat, value in karma.items():
             stats[stat] += value
     models.game.rudeness_count += stats["rudeness"]
@@ -60,20 +60,20 @@ def quiz(inventory: list[str]) -> bool:
         return False
 
 def noeasy_world(inventory: list[str]) -> bool:
-    texts = load_json("content/noeasy.json")
+    
     inventory_utils.check_amulet(inventory)
     logger.wprint(
-        texts["noeasy_intro"]
+        data["noeasy_intro"]
     )
     if not quiz(inventory):
         logger.wprint(
-            texts["bad_ends"]["first_end"]
+            data["bad_ends"]["first_end"]
         )
         if inventory_utils.use_amulet(inventory):
             models.game.used_amulet += 1
             if not quiz(inventory):
                 logger.wprint(
-                    texts["bad_ends"]["second_end"]
+                    data["bad_ends"]["second_end"]
                 )
                 return False
         else:

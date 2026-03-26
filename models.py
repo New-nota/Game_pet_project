@@ -20,9 +20,9 @@ game = GameState()
 class GameDefaults:
     choose_difficulty: dict[int, list[str]] = field(
         default_factory=lambda:{
-        1: ["фонарик"],
+        1: ["фонарик", "компас", "амулет"],
         2: ["фонарик", "компас"],
-        3: ["фонарик", "компас", "амулет"],
+        3: ["фонарик"],
         }
     )
 

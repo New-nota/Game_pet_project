@@ -2,9 +2,10 @@ import logger
 import inventory as inventory_utils
 from content_loader import load_json
 import models 
+data = load_json("content/miroh.json")
 
 def fight_with_robot() -> bool:
-    texts = load_json("content/miroh.json")["miroh_act_1"]["choosed_2"]
+    texts = data["miroh_act_1"]["choosed_2"]
     # драка с роботом, правильная комбинация 1 2 3.
     # количества урона которое можно впитать 3
     logger.wprint(
@@ -27,7 +28,7 @@ def fight_with_robot() -> bool:
 
 
 def sprint() -> bool:
-    texts = load_json("content/miroh.json")["miroh_act_1"]["choosed_2"]
+    texts = data["miroh_act_1"]["choosed_2"]
     # имитирует попытку пробежать незамеченным,
     # правильный порядок 1 2
     logger.wprint(
@@ -42,7 +43,7 @@ def sprint() -> bool:
 
 
 def miroh_world_act1(inventory: list[str]) -> bool:  # расписан шаг 1
-    texts = load_json("content/miroh.json")["miroh_act_1"]
+    texts = data["miroh_act_1"]
     logger.wprint(
         texts["choose_move_text"]
     )
@@ -102,7 +103,7 @@ def miroh_world_act1(inventory: list[str]) -> bool:  # расписан шаг 1
 
 
 def meeting() -> bool: # здесь True - флаг того что мы взяли беженцев, False - то что они не с нами
-    texts = load_json("content/miroh.json")["miroh_act_2"]
+    texts = data["miroh_act_2"]
     logger.wprint(
         texts["meeting_intro"]
     )
@@ -136,7 +137,7 @@ def check_match(user_way: str, right_way: str) -> bool:
 
 
 def miroh_world_act2() -> bool:
-    texts = load_json("content/miroh.json")["miroh_act_2"]
+    texts = data["miroh_act_2"]
     # второй шаг
     # выход из лабиринта 12321
     logger.wprint(
@@ -164,7 +165,7 @@ def miroh_world_act2() -> bool:
 
 
 def miroh_world(inventory: list[str]) -> bool:
-    texts = load_json("content/miroh.json")
+    texts = data
     inventory_utils.check_amulet(inventory)
     logger.wprint(
         texts["intro_miroh"]
