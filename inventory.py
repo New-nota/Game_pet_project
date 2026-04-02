@@ -16,7 +16,7 @@ def use_amulet(inventory: list[str]) -> bool:
 
 
 def check_amulet(inventory: list[str]) -> None: # дается 1 на каждый мир при сложности новичок 
-    if models.game.difficulty == 3 and "амулет" not in inventory:
+    if models.game.difficulty == 1 and "амулет" not in inventory:
         inventory.append("амулет")
 
 
